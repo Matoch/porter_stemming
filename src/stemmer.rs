@@ -56,7 +56,7 @@ fn measure(word: &String) -> usize {
     return count;
 }
 fn stem(word: String) -> String {
-    if word.chars().count() > 2 {
+    if word.len() > 2 {
         let mut my_word = word.to_lowercase().trim().to_string();
         my_word = stem1a(my_word);
         my_word = stem1b(my_word);
@@ -73,18 +73,18 @@ fn stem(word: String) -> String {
 
 fn stem1a(mut word: String) -> String {
     if word.ends_with("sses") {
-        word.truncate(word.chars().count()-2);
+        word.truncate(word.len()-2);
         return word;
     }
     else if word.ends_with("ies") {
-        word.truncate(word.chars().count()-2);
+        word.truncate(word.len()-2);
         return word;
     }
     else  if word.ends_with("ss") {
         return word;
     }
     else if word.ends_with("s") {
-        word.truncate(word.chars().count()-1);
+        word.truncate(word.len()-1);
         return word;
     }
     return word;
@@ -93,25 +93,25 @@ fn stem1a(mut word: String) -> String {
 fn stem1b(mut word: String) -> String {
     if word.ends_with("eed") {
         let mut measure_word = word.clone();
-        measure_word.truncate(measure_word.chars().count()-3);
+        measure_word.truncate(measure_word.len()-3);
         if measure(&measure_word) > 0 {
-            word.truncate(word.chars().count()-1);
+            word.truncate(word.len()-1);
             return word;
         }
     }
     else if word.ends_with("ed") {
         let mut measure_word = word.to_lowercase();
-        measure_word.truncate(measure_word.chars().count()-2);
+        measure_word.truncate(measure_word.len()-2);
         if has_vowel(&measure_word) {
-            word.truncate(word.chars().count()-2);
+            word.truncate(word.len()-2);
             return stem1bresolve(word);
         }
     }
     else  if word.ends_with("ing") {
         let mut measure_word = word.to_lowercase();
-        measure_word.truncate(measure_word.chars().count()-3);
+        measure_word.truncate(measure_word.len()-3);
         if has_vowel(&measure_word) {
-            word.truncate(word.chars().count()-3);
+            word.truncate(word.len()-3);
             return stem1bresolve(word);
         }
     }
@@ -133,9 +133,9 @@ fn stem1bresolve(mut word: String) -> String {
         word.push('e');
         return word;
     }
-    else if (get_char_at_position(&word, word.chars().count()) == get_char_at_position(&word, word.chars().count()-1)) && 
-        is_consonant(get_char_at_position(&word, word.chars().count()-1), get_char_at_position(&word, word.chars().count()-2)) {
-            let foo = get_char_at_position(&word, word.chars().count()-1);
+    else if (get_char_at_position(&word, word.len()) == get_char_at_position(&word, word.len()-1)) && 
+        is_consonant(get_char_at_position(&word, word.len()-1), get_char_at_position(&word, word.len()-2)) {
+            let foo = get_char_at_position(&word, word.len()-1);
             match  foo {
                 Some('l') | Some('s') | Some('z') => return word,
                 _ => {
@@ -146,9 +146,9 @@ fn stem1bresolve(mut word: String) -> String {
             }
     }
     else if measure(&word) == 1 && 
-        is_consonant(get_char_at_position(&word, word.chars().count()), get_char_at_position(&word, word.chars().count()-1)) &&
-        !is_consonant(get_char_at_position(&word, word.chars().count()-1), get_char_at_position(&word, word.chars().count()-2)) &&
-        is_consonant(get_char_at_position(&word, word.chars().count()-2), get_char_at_position(&word, word.chars().count()-3)) {
+        is_consonant(get_char_at_position(&word, word.len()), get_char_at_position(&word, word.len()-1)) &&
+        !is_consonant(get_char_at_position(&word, word.len()-1), get_char_at_position(&word, word.len()-2)) &&
+        is_consonant(get_char_at_position(&word, word.len()-2), get_char_at_position(&word, word.len()-3)) {
             if word.ends_with('w') | word.ends_with('x') | word.ends_with('y') {
                 return word;
             }
@@ -172,118 +172,118 @@ fn stem1c(mut word: String) -> String {
 }
 
 fn my_truncate(mut word: String, remove: usize) -> String {
-    word.truncate(word.chars().count() - remove);
+    word.truncate(word.len() - remove);
     return word;
 }
 
 fn stem2(mut word: String) -> String {
-    let letter = get_char_at_position(&word, word.chars().count()-1);
+    let letter = get_char_at_position(&word, word.len()-1);
     match letter {
         Some('a') => 
             if word.ends_with("ational") && measure(&my_truncate(word.clone(), 7)) > 0 {
-                word.truncate(word.chars().count()-7);
+                word.truncate(word.len()-7);
                 word.push_str("ate");
                 return word;
             }
             else if word.ends_with("tional") && measure(&my_truncate(word.clone(), 6)) > 0 {
-                word.truncate(word.chars().count()-6);
+                word.truncate(word.len()-6);
                 word.push_str("tion");
                 return word;
             },  
 
         Some('c') => 
             if word.ends_with("enci") && measure(&my_truncate(word.clone(), 4)) > 0 {
-                word.truncate(word.chars().count()-4);
+                word.truncate(word.len()-4);
                 word.push_str("ence");
                 return word;
             }
             else if word.ends_with("anci") && measure(&my_truncate(word.clone(), 4)) > 0 {
-                word.truncate(word.chars().count()-4);
+                word.truncate(word.len()-4);
                 word.push_str("ance");
                 return word;
             },
         Some('e') => 
             if word.ends_with("izer") && measure(&my_truncate(word.clone(), 4)) > 0 {
-                word.truncate(word.chars().count()-4);
+                word.truncate(word.len()-4);
                 word.push_str("ize");
                 return word;
             },
         Some('l') => 
             if word.ends_with("abli") && measure(&my_truncate(word.clone(), 4)) > 0 {
-                word.truncate(word.chars().count()-4);
+                word.truncate(word.len()-4);
                 word.push_str("able");
                 return word;
             }
             else if word.ends_with("alli") && measure(&my_truncate(word.clone(), 4)) > 0 {
-                word.truncate(word.chars().count()-4);
+                word.truncate(word.len()-4);
                 word.push_str("al");
                 return word;
             }
             else if word.ends_with("entli") && measure(&my_truncate(word.clone(), 5)) > 0 {
-                word.truncate(word.chars().count()-5);
+                word.truncate(word.len()-5);
                 word.push_str("ent");
                 return word;
             }
             else if word.ends_with("ousli") && measure(&my_truncate(word.clone(), 5)) > 0 {
-                word.truncate(word.chars().count()-5);
+                word.truncate(word.len()-5);
                 word.push_str("ous");
                 return word;
             }
             else if word.ends_with("eli") && measure(&my_truncate(word.clone(), 3)) > 0 {
-                word.truncate(word.chars().count()-3);
+                word.truncate(word.len()-3);
                 word.push_str("e");
                 return word;
             },
         Some('o') => 
             if word.ends_with("ization") && measure(&my_truncate(word.clone(), 7)) > 0 {
-                word.truncate(word.chars().count()-7);
+                word.truncate(word.len()-7);
                 word.push_str("ize");
                 return word;
             }
             else if word.ends_with("ation") && measure(&my_truncate(word.clone(), 5)) > 0 {
-                word.truncate(word.chars().count()-5);
+                word.truncate(word.len()-5);
                 word.push_str("ate");
                 return word;
             }
             else if word.ends_with("ator") && measure(&my_truncate(word.clone(), 4)) > 0 {
-                word.truncate(word.chars().count()-4);
+                word.truncate(word.len()-4);
                 word.push_str("ate");
                 return word;
             },
         Some('s') => 
             if word.ends_with("alism") && measure(&my_truncate(word.clone(), 5)) > 0 {
-                word.truncate(word.chars().count()-5);
+                word.truncate(word.len()-5);
                 word.push_str("al");
                 return word;
             }
             else if word.ends_with("iveness") && measure(&my_truncate(word.clone(), 7)) > 0 {
-                word.truncate(word.chars().count()-7);
+                word.truncate(word.len()-7);
                 word.push_str("ive");
                 return word;
             }
             else if word.ends_with("fulness") && measure(&my_truncate(word.clone(), 7)) > 0 {
-                word.truncate(word.chars().count()-7);
+                word.truncate(word.len()-7);
                 word.push_str("ful");
                 return word;
             }
             else if word.ends_with("ousness") && measure(&my_truncate(word.clone(), 7)) > 0 {
-                word.truncate(word.chars().count()-7);
+                word.truncate(word.len()-7);
                 word.push_str("ous");
                 return word;
             },
         Some('t') => 
             if word.ends_with("aliti") && measure(&my_truncate(word.clone(), 5)) > 0 {
-                word.truncate(word.chars().count()-5);
+                word.truncate(word.len()-5);
                 word.push_str("al");
                 return word;
             }
             else if word.ends_with("iviti") && measure(&my_truncate(word.clone(), 5)) > 0 {
-                word.truncate(word.chars().count()-5);
+                word.truncate(word.len()-5);
                 word.push_str("ive");
                 return word;
             }
             else if word.ends_with("biliti") && measure(&my_truncate(word.clone(), 6)) > 0 {
-                word.truncate(word.chars().count()-6);
+                word.truncate(word.len()-6);
                 word.push_str("ble");
                 return word;
             },
@@ -293,19 +293,19 @@ fn stem2(mut word: String) -> String {
 }
 
 fn stem2_3_helper(word: String, end: String) -> bool {
-    if word.ends_with(end.as_str()) && measure(&my_truncate(word.clone(), end.chars().count())) > 0 {
+    if word.ends_with(end.as_str()) && measure(&my_truncate(word.clone(), end.len())) > 0 {
         return true;
     }
     return false;
 }
 fn stem2_3_helper_2(word: String, end: String, append: String) -> String {
-    let mut my_word = my_truncate(word, end.chars().count());
+    let mut my_word = my_truncate(word, end.len());
     my_word.push_str(append.as_str());
     return my_word;
 }
 
 fn stem3(word: String) -> String {
-    let letter = get_char_at_position(&word, word.chars().count()-1);
+    let letter = get_char_at_position(&word, word.len()-1);
     match letter {
         Some('a') => if stem2_3_helper(word.clone(), String::from("ical")) {
             return stem2_3_helper_2(word, String::from("ical"), String::from("ic"));
@@ -335,18 +335,18 @@ fn stem3(word: String) -> String {
 }
 
 fn stem4_helper(word: String, end: String) -> bool {
-    if word.ends_with(end.as_str()) && measure(&my_truncate(word.clone(), end.chars().count())) > 1 {
+    if word.ends_with(end.as_str()) && measure(&my_truncate(word.clone(), end.len())) > 1 {
         return true;
     }
     return false;
 }
 fn stem4_helper_2(word: String, end: String) -> String {
-    let my_word = my_truncate(word, end.chars().count());
+    let my_word = my_truncate(word, end.len());
     return my_word;
 }
 
 fn stem4(word: String) -> String {
-    let letter = get_char_at_position(&word, word.chars().count()-1);
+    let letter = get_char_at_position(&word, word.len()-1);
     match letter {
         Some('a') => if stem4_helper(word.clone(), String::from("al")) {
             return stem4_helper_2(word, String::from("al"));
@@ -381,8 +381,8 @@ fn stem4(word: String) -> String {
         else if stem4_helper(word.clone(), String::from("ent")) {
             return stem4_helper_2(word, String::from("ent"));
         },
-        Some('o') => if word.ends_with("ion") && measure(&my_truncate(word.clone(), word.chars().count()-4)) > 1 {
-            let letter2 = get_char_at_position(&word, word.chars().count()-3);
+        Some('o') => if word.ends_with("ion") && measure(&my_truncate(word.clone(), word.len()-4)) > 1 {
+            let letter2 = get_char_at_position(&word, word.len()-3);
             match letter2 {
                 Some('s') | Some('t') => return stem4_helper_2(word, String::from("ion")),
                 _ => return word,
@@ -413,33 +413,19 @@ fn stem4(word: String) -> String {
 }
 
 fn stem5a_helper(word: String) -> bool {
-    let my_chars = word.chars();
-    if word.chars().count() < 4 {
-        let mut foo = my_chars.skip(word.chars().count()-3);
-
-        let one = None;
-        let two = foo.next();
-        let three = foo.next();
-        let four = foo.next();
-        if !is_consonant(two, one) | is_consonant(three, two) | !is_consonant(four, three) {
-            return true;
-        }
-        else {
-            match four {
-                Some('x') | Some('y') | Some('w') => return true,
-                _ => return false,
-            }
-        }
+    let mut one: Option<char> = None;
+    if word.len() >=4 {
+        let my_chars = word.chars();
+        let mut foo = my_chars.skip(word.len()-4);
+        one = foo.next();
     }
-    let mut foo = my_chars.skip(word.chars().count()-4);
-    
-    let one = foo.next();
+    let my_chars = word.chars();
+    let mut foo = my_chars.skip(word.len()-3);
     let two = foo.next();
     let three = foo.next();
     let four = foo.next();
-    //*o  - the stem ends cvc, where the second c is not W, X or Y (e.g.-WIL, -HOP).
     if !is_consonant(two, one) | is_consonant(three, two) | !is_consonant(four, three) {
-       return true;
+        return true;
     }
     else {
         match four {
@@ -463,7 +449,7 @@ fn stem5a(mut word: String) -> String {
 fn stem5b(mut word: String) -> String {
     if word.ends_with("l") {
         let my_chars = word.chars();
-        let mut foo = my_chars.skip(word.chars().count()-3);
+        let mut foo = my_chars.skip(word.len()-3);
 
         let one = foo.next();
         let two = foo.next();
@@ -580,7 +566,7 @@ mod tests {
         assert_eq!(get_char_at_position(&String::from("fubar"), 5), Some('r'));
         assert_eq!(get_char_at_position(&String::from("fubar"), 6), None);
         let foo = String::from("fubar");
-        assert_eq!(get_char_at_position(&foo, foo.chars().count()), Some('r'));
+        assert_eq!(get_char_at_position(&foo, foo.len()), Some('r'));
 
 
     }
