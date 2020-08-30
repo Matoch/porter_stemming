@@ -17,16 +17,11 @@ fn is_consonant(current: Option<char>, previous: Option<char>) -> bool {
 
 fn has_vowel(word: &String) -> bool {
     let my_chars = word.chars();
-    let mut previous: Option<char> = None;
+    let mut previous: Option<char>;
     let mut current: Option<char> = None;
     for my_char in my_chars {
-        if None == current {
-            current = Some(my_char);
-        }
-        else {
-            previous = current;
-            current = Some(my_char);
-        }
+        previous = current;
+        current = Some(my_char);
         if !is_consonant(current, previous) {
             return true;
         };
@@ -36,23 +31,18 @@ fn has_vowel(word: &String) -> bool {
 
 fn measure(word: &String) -> usize {
     let my_chars = word.chars();
-    let mut previous: Option<char> = None;
+    let mut previous: Option<char>;
     let mut current: Option<char> = None;
     let mut count = 0;
     let mut current_consonant = false;
-    let mut begin = false;
+    let mut begin_counting = false;
 
     for my_char in my_chars {
-        if None == current {
-            current = Some(my_char);
-        }
-        else {
-            previous = current;
-            current = Some(my_char);
-        }
-        if !begin {
+        previous = current;
+        current = Some(my_char);
+        if !begin_counting {
             if !is_consonant(current, previous) {
-                begin = true;
+                begin_counting = true;
             }
         }
         else if current_consonant != is_consonant(current, previous) {
@@ -67,7 +57,7 @@ fn measure(word: &String) -> usize {
 }
 fn stem(word: String) -> String {
     if word.chars().count() > 2 {
-        let mut my_word = word.to_lowercase();
+        let mut my_word = word.to_lowercase().trim().to_string();
         my_word = stem1a(my_word);
         my_word = stem1b(my_word);
         my_word = stem1c(my_word);
@@ -129,13 +119,16 @@ fn stem1b(mut word: String) -> String {
 }
 
 fn get_char_at_position(word: &String, position: usize) -> Option<char> {
+    if position == 0 {
+        return None;
+    }
     let mut my_chars = word.chars().skip(position-1);
     let my_char = my_chars.next();
     return my_char;
 }
 
-// This does not guard effectively against short words and needs some work. 
 fn stem1bresolve(mut word: String) -> String {
+    println!("{}", word);
     if word.ends_with("at") || word.ends_with("bl") || word.ends_with("iz") {
         word.push('e');
         return word;
