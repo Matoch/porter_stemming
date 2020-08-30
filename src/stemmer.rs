@@ -436,24 +436,21 @@ fn stem4(word: String) -> String {
 fn stem5a_helper(word: String) -> bool {
     let my_chars = word.chars();
     if word.chars().count() < 4 {
-        if word.chars().count() < 4 {
-            let mut foo = my_chars.skip(word.chars().count()-3);
-    
-            let one = None;
-            let two = foo.next();
-            let three = foo.next();
-            let four = foo.next();
-            if !is_consonant(two, one) | is_consonant(three, two) | !is_consonant(four, three) {
-                return true;
-            }
-            else {
-                match four {
-                    Some('x') | Some('y') | Some('w') => return true,
-                    _ => return false,
-                }
+        let mut foo = my_chars.skip(word.chars().count()-3);
+
+        let one = None;
+        let two = foo.next();
+        let three = foo.next();
+        let four = foo.next();
+        if !is_consonant(two, one) | is_consonant(three, two) | !is_consonant(four, three) {
+            return true;
+        }
+        else {
+            match four {
+                Some('x') | Some('y') | Some('w') => return true,
+                _ => return false,
             }
         }
-        return false;
     }
     let mut foo = my_chars.skip(word.chars().count()-4);
     
@@ -473,32 +470,30 @@ fn stem5a_helper(word: String) -> bool {
     }
 }
 
-fn stem5a(word: String) -> String {
-    let mut my_word = word.clone();
-    my_word.pop();
-    if word.ends_with("e") && measure_greater_than_1(&my_word) {
-        return my_word;
+fn stem5a(mut word: String) -> String {
+    let y = word.pop().unwrap();
+    if y == 'e' {
+        if measure_greater_than_1(&word) || (measure_equals_1(&word) && stem5a_helper(word.clone())) {
+            return word;
+        }
     }
-    else if word.ends_with("e") && measure_equals_1(&my_word) && stem5a_helper(my_word.clone()) {
-        return my_word;
-    }
+    word.push(y);
     return word;
 }
 
-fn stem5b(word: String) -> String {
-    
+fn stem5b(mut word: String) -> String {
     if word.ends_with("l") {
-        let mut my_word = word.clone();
-        my_word.pop();  
         let my_chars = word.chars();
         let mut foo = my_chars.skip(word.chars().count()-3);
 
         let one = foo.next();
         let two = foo.next();
         let three = foo.next();
-        if measure_greater_than_1(&my_word) && is_consonant(two, one) && is_consonant(three, two) {
-            return my_word;
+        let y = word.pop().unwrap();
+        if measure_greater_than_1(&word) && is_consonant(two, one) && is_consonant(three, two) {
+            return word;
         }
+        word.push(y);
     }
     return word;
 }
