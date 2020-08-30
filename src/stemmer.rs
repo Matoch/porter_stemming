@@ -18,9 +18,8 @@ fn is_consonant(current: Option<char>, previous: Option<char>) -> bool {
     }
 }
 
-fn has_vowel(word: String) -> bool {
-    let my_string = word.to_lowercase();
-    let my_chars = my_string.chars();
+fn has_vowel(word: &String) -> bool {
+    let my_chars = word.chars();
     let mut previous: Option<char> = None;
     let mut current: Option<char> = None;
     for my_char in my_chars {
@@ -35,11 +34,12 @@ fn has_vowel(word: String) -> bool {
             return true;
         };
     }
-
     return false;
 }
 
-fn measure_equals_0(word: String) -> bool {
+
+// Not used outside of testing?
+fn measure_equals_0(word: &String) -> bool {
     let my_word = word.to_lowercase();
     let re = Regex::new(r"^([^aeiou][^aeiouy]*)?([aeiouy][aeiou]*)([^aeiou][^aeiouy]*)").unwrap();
     let foo = re.find_iter(my_word.as_str());
@@ -49,7 +49,7 @@ fn measure_equals_0(word: String) -> bool {
     return true;
 }
 
-fn measure_greater_than_0(word: String) -> bool {
+fn measure_greater_than_0(word: &String) -> bool {
     let my_word = word.to_lowercase();
     let re = Regex::new(r"^([^aeiou][^aeiouy]*)?([aeiouy][aeiou]*)([^aeiou][^aeiouy]*)").unwrap();
     let foo = re.find_iter(my_word.as_str());
@@ -59,7 +59,7 @@ fn measure_greater_than_0(word: String) -> bool {
     return false;
 }
 
-fn measure_equals_1(word: String) -> bool {
+fn measure_equals_1(word: &String) -> bool {
     let my_word = word.to_lowercase();
     let re = Regex::new(r"^([^aeiou][^aeiouy]*)?([aeiouy][aeiou]*)([^aeiou][^aeiouy]*)([aeiouy][aeiou]*)?$").unwrap();
     let foo = re.find_iter(my_word.as_str());
@@ -69,7 +69,7 @@ fn measure_equals_1(word: String) -> bool {
     return false;
 }
 
-fn measure_greater_than_1(word: String) -> bool {
+fn measure_greater_than_1(word: &String) -> bool {
     let my_word = word.to_lowercase();
     let re = Regex::new(r"^([^aeiou][^aeiouy]*)?([aeiouy][aeiou]*)([^aeiou][^aeiouy]*)([aeiouy][aeiou]*)([^aeiou][^aeiouy]*)").unwrap();
     let foo = re.find_iter(my_word.as_str());
@@ -80,8 +80,8 @@ fn measure_greater_than_1(word: String) -> bool {
 }
 
 fn stem(word: String) -> String {
-    if word.len() > 2 {
-        let mut my_word = word.clone();
+    if word.chars().count() > 2 {
+        let mut my_word = word.to_lowercase();
         my_word = stem1a(my_word);
         my_word = stem1b(my_word);
         my_word = stem1c(my_word);
@@ -95,53 +95,51 @@ fn stem(word: String) -> String {
     return word;
 }
 
-fn stem1a(word: String) -> String {
-    let mut my_word = word.to_lowercase();
+fn stem1a(mut word: String) -> String {
     if word.ends_with("sses") {
-        my_word.truncate(word.len()-2);
-        return my_word;
+        word.truncate(word.chars().count()-2);
+        return word;
     }
     else if word.ends_with("ies") {
-        my_word.truncate(word.len()-2);
-        return my_word;
+        word.truncate(word.chars().count()-2);
+        return word;
     }
     else  if word.ends_with("ss") {
-        return my_word;
+        return word;
     }
     else if word.ends_with("s") {
-        my_word.truncate(word.len()-1);
-        return my_word;
+        word.truncate(word.chars().count()-1);
+        return word;
     }
-    return my_word;
+    return word;
 }
 
-fn stem1b(word: String) -> String {
-    let mut my_word = word.to_lowercase();
+fn stem1b(mut word: String) -> String {
     if word.ends_with("eed") {
-        let mut measure_word = word.to_lowercase();
-        measure_word.truncate(measure_word.len()-3);
-        if measure_greater_than_0(measure_word) {
-            my_word.truncate(my_word.len()-1);
-            return my_word;
+        let mut measure_word = word.clone();
+        measure_word.truncate(measure_word.chars().count()-3);
+        if measure_greater_than_0(&measure_word) {
+            word.truncate(word.chars().count()-1);
+            return word;
         }
     }
     else if word.ends_with("ed") {
         let mut measure_word = word.to_lowercase();
-        measure_word.truncate(measure_word.len()-2);
-        if has_vowel(measure_word) {
-            my_word.truncate(my_word.len()-2);
-            return stem1bresolve(my_word);
+        measure_word.truncate(measure_word.chars().count()-2);
+        if has_vowel(&measure_word) {
+            word.truncate(word.chars().count()-2);
+            return stem1bresolve(word);
         }
     }
     else  if word.ends_with("ing") {
         let mut measure_word = word.to_lowercase();
-        measure_word.truncate(measure_word.len()-3);
-        if has_vowel(measure_word) {
-            my_word.truncate(my_word.len()-3);
-            return stem1bresolve(my_word);
+        measure_word.truncate(measure_word.chars().count()-3);
+        if has_vowel(&measure_word) {
+            word.truncate(word.chars().count()-3);
+            return stem1bresolve(word);
         }
     }
-    return my_word;
+    return word;
 }
 
 fn get_char_at_position(word: &String, position: usize) -> Option<char> {
@@ -150,199 +148,205 @@ fn get_char_at_position(word: &String, position: usize) -> Option<char> {
     return my_char;
 }
 
-fn stem1bresolve(word: String) -> String {
-    let mut my_word = word.clone();
-    if my_word.ends_with("at") || my_word.ends_with("bl") || my_word.ends_with("iz") {
-        my_word.push('e');
-        return my_word;
+// This does not guard effectively against short words and needs some work. 
+fn stem1bresolve(mut word: String) -> String {
+    if word.ends_with("at") || word.ends_with("bl") || word.ends_with("iz") {
+        word.push('e');
+        return word;
     }
-    else if (get_char_at_position(&word, word.len()) == get_char_at_position(&word, word.len()-1)) && 
-        is_consonant(get_char_at_position(&word, word.len()-1), get_char_at_position(&word, word.len()-2)) {
-            let foo = get_char_at_position(&word, word.len()-1);
+    else if (get_char_at_position(&word, word.chars().count()) == get_char_at_position(&word, word.chars().count()-1)) && 
+        is_consonant(get_char_at_position(&word, word.chars().count()-1), get_char_at_position(&word, word.chars().count()-2)) {
+            let foo = get_char_at_position(&word, word.chars().count()-1);
             match  foo {
                 Some('l') | Some('s') | Some('z') => return word,
                 _ => {
-                    my_word.pop();
-                    return my_word;
+                    word.pop();
+                    return word;
                 }
 
             }
     }
-    else if (measure_equals_1(my_word.clone())) && 
-        is_consonant(get_char_at_position(&word, word.len()), get_char_at_position(&word, word.len()-1)) &&
-        !is_consonant(get_char_at_position(&word, word.len()-1), get_char_at_position(&word, word.len()-2)) &&
-        is_consonant(get_char_at_position(&word, word.len()-2), get_char_at_position(&word, word.len()-3)) {
+    else if measure_equals_1(&word) && 
+        is_consonant(get_char_at_position(&word, word.chars().count()), get_char_at_position(&word, word.chars().count()-1)) &&
+        !is_consonant(get_char_at_position(&word, word.chars().count()-1), get_char_at_position(&word, word.chars().count()-2)) &&
+        is_consonant(get_char_at_position(&word, word.chars().count()-2), get_char_at_position(&word, word.chars().count()-3)) {
             if word.ends_with('w') | word.ends_with('x') | word.ends_with('y') {
                 return word;
             }
             else {
-                my_word.push('e');
-                return my_word;
+                word.push('e');
+                return word;
             }
     }
     return word;
     
 }
 
-fn stem1c(word: String) -> String {
-    let mut my_word = word.clone();
-    my_word.pop();
-    if has_vowel(my_word.clone()) && word.ends_with('y') {
-        my_word.push('i');
-        return my_word;
+fn stem1c(mut word: String) -> String {
+    let l = word.pop();
+    if has_vowel(&word) && l == Some('y') {
+        word.push('i');
+        return word;
     }
+    word.push(l.unwrap());
     return word;
 }
 
-fn my_truncate(word: String, remove: usize) -> String {
-    let mut my_word = word.clone();
-    my_word.truncate(word.len() - remove);
-    return my_word;
+fn my_truncate(mut word: String, remove: usize) -> String {
+    word.truncate(word.chars().count() - remove);
+    return word;
 }
 
-fn stem2(word: String) -> String {
-    let letter = get_char_at_position(&word, word.len()-1);
+fn stem2(mut word: String) -> String {
+    let letter = get_char_at_position(&word, word.chars().count()-1);
     match letter {
-        Some('a') => if word.ends_with("ational") && measure_greater_than_0(my_truncate(word.clone(), 7)) {
-            let mut my_word = my_truncate(word, 7);
-            my_word.push_str("ate");
-            return my_word;
-        }
-        else if word.ends_with("tional") && measure_greater_than_0(my_truncate(word.clone(), 6)) {
-            let mut my_word = my_truncate(word, 6);
-            my_word.push_str("tion");
-            return my_word;
-        },  
+        Some('a') => 
+            if word.ends_with("ational") && measure_greater_than_0(&my_truncate(word.clone(), 7)) {
+                word.truncate(word.chars().count()-7);
+                word.push_str("ate");
+                return word;
+            }
+            else if word.ends_with("tional") && measure_greater_than_0(&my_truncate(word.clone(), 6)) {
+                word.truncate(word.chars().count()-6);
+                word.push_str("tion");
+                return word;
+            },  
 
-        Some('c') => if word.ends_with("enci") && measure_greater_than_0(my_truncate(word.clone(), 4)) {
-            let mut my_word = my_truncate(word, 4);
-            my_word.push_str("ence");
-            return my_word;
-        }
-        else if word.ends_with("anci") && measure_greater_than_0(my_truncate(word.clone(), 4)) {
-            let mut my_word = my_truncate(word, 4);
-            my_word.push_str("ance");
-            return my_word;
-        },
-        Some('e') => if word.ends_with("izer") && measure_greater_than_0(my_truncate(word.clone(), 4)) {
-            let mut my_word = my_truncate(word, 4);
-            my_word.push_str("ize");
-            return my_word;
-        },
-        Some('l') => if word.ends_with("abli") && measure_greater_than_0(my_truncate(word.clone(), 4)) {
-            let mut my_word = my_truncate(word, 4);
-            my_word.push_str("able");
-            return my_word;
-        }
-        else if word.ends_with("alli") && measure_greater_than_0(my_truncate(word.clone(), 4)) {
-            let mut my_word = my_truncate(word, 4);
-            my_word.push_str("al");
-            return my_word;
-        }
-        else if word.ends_with("entli") && measure_greater_than_0(my_truncate(word.clone(), 5)) {
-            let mut my_word = my_truncate(word, 5);
-            my_word.push_str("ent");
-            return my_word;
-        }
-        else if word.ends_with("ousli") && measure_greater_than_0(my_truncate(word.clone(), 5)) {
-            let mut my_word = my_truncate(word, 5);
-            my_word.push_str("ous");
-            return my_word;
-        }
-        else if word.ends_with("eli") && measure_greater_than_0(my_truncate(word.clone(), 3)) {
-            let mut my_word = my_truncate(word, 3);
-            my_word.push_str("e");
-            return my_word;
-        },
-        Some('o') => if word.ends_with("ization") && measure_greater_than_0(my_truncate(word.clone(), 7)) {
-            let mut my_word = my_truncate(word, 7);
-            my_word.push_str("ize");
-            return my_word;
-        }
-        else if word.ends_with("ation") && measure_greater_than_0(my_truncate(word.clone(), 5)) {
-            let mut my_word = my_truncate(word, 5);
-            my_word.push_str("ate");
-            return my_word;
-        }
-        else if word.ends_with("ator") && measure_greater_than_0(my_truncate(word.clone(), 4)) {
-            let mut my_word = my_truncate(word, 4);
-            my_word.push_str("ate");
-            return my_word;
-        },
-        Some('s') => if word.ends_with("alism") && measure_greater_than_0(my_truncate(word.clone(), 5)) {
-            let mut my_word = my_truncate(word, 5);
-            my_word.push_str("al");
-            return my_word;
-        }
-        else if word.ends_with("iveness") && measure_greater_than_0(my_truncate(word.clone(), 7)) {
-            let mut my_word = my_truncate(word, 7);
-            my_word.push_str("ive");
-            return my_word;
-        }
-        else if word.ends_with("fulness") && measure_greater_than_0(my_truncate(word.clone(), 7)) {
-            let mut my_word = my_truncate(word, 7);
-            my_word.push_str("ful");
-            return my_word;
-        }
-        else if word.ends_with("ousness") && measure_greater_than_0(my_truncate(word.clone(), 7)) {
-            let mut my_word = my_truncate(word, 7);
-            my_word.push_str("ous");
-            return my_word;
-        },
-        Some('t') => if word.ends_with("aliti") && measure_greater_than_0(my_truncate(word.clone(), 5)) {
-            let mut my_word = my_truncate(word, 5);
-            my_word.push_str("al");
-            return my_word;
-        }
-        else if word.ends_with("iviti") && measure_greater_than_0(my_truncate(word.clone(), 5)) {
-            let mut my_word = my_truncate(word, 5);
-            my_word.push_str("ive");
-            return my_word;
-        }
-        else if word.ends_with("biliti") && measure_greater_than_0(my_truncate(word.clone(), 6)) {
-            let mut my_word = my_truncate(word, 6);
-            my_word.push_str("ble");
-            return my_word;
-        },
+        Some('c') => 
+            if word.ends_with("enci") && measure_greater_than_0(&my_truncate(word.clone(), 4)) {
+                word.truncate(word.chars().count()-4);
+                word.push_str("ence");
+                return word;
+            }
+            else if word.ends_with("anci") && measure_greater_than_0(&my_truncate(word.clone(), 4)) {
+                word.truncate(word.chars().count()-4);
+                word.push_str("ance");
+                return word;
+            },
+        Some('e') => 
+            if word.ends_with("izer") && measure_greater_than_0(&my_truncate(word.clone(), 4)) {
+                word.truncate(word.chars().count()-4);
+                word.push_str("ize");
+                return word;
+            },
+        Some('l') => 
+            if word.ends_with("abli") && measure_greater_than_0(&my_truncate(word.clone(), 4)) {
+                word.truncate(word.chars().count()-4);
+                word.push_str("able");
+                return word;
+            }
+            else if word.ends_with("alli") && measure_greater_than_0(&my_truncate(word.clone(), 4)) {
+                word.truncate(word.chars().count()-4);
+                word.push_str("al");
+                return word;
+            }
+            else if word.ends_with("entli") && measure_greater_than_0(&my_truncate(word.clone(), 5)) {
+                word.truncate(word.chars().count()-5);
+                word.push_str("ent");
+                return word;
+            }
+            else if word.ends_with("ousli") && measure_greater_than_0(&my_truncate(word.clone(), 5)) {
+                word.truncate(word.chars().count()-5);
+                word.push_str("ous");
+                return word;
+            }
+            else if word.ends_with("eli") && measure_greater_than_0(&my_truncate(word.clone(), 3)) {
+                word.truncate(word.chars().count()-3);
+                word.push_str("e");
+                return word;
+            },
+        Some('o') => 
+            if word.ends_with("ization") && measure_greater_than_0(&my_truncate(word.clone(), 7)) {
+                word.truncate(word.chars().count()-7);
+                word.push_str("ize");
+                return word;
+            }
+            else if word.ends_with("ation") && measure_greater_than_0(&my_truncate(word.clone(), 5)) {
+                word.truncate(word.chars().count()-5);
+                word.push_str("ate");
+                return word;
+            }
+            else if word.ends_with("ator") && measure_greater_than_0(&my_truncate(word.clone(), 4)) {
+                word.truncate(word.chars().count()-4);
+                word.push_str("ate");
+                return word;
+            },
+        Some('s') => 
+            if word.ends_with("alism") && measure_greater_than_0(&my_truncate(word.clone(), 5)) {
+                word.truncate(word.chars().count()-5);
+                word.push_str("al");
+                return word;
+            }
+            else if word.ends_with("iveness") && measure_greater_than_0(&my_truncate(word.clone(), 7)) {
+                word.truncate(word.chars().count()-7);
+                word.push_str("ive");
+                return word;
+            }
+            else if word.ends_with("fulness") && measure_greater_than_0(&my_truncate(word.clone(), 7)) {
+                word.truncate(word.chars().count()-7);
+                word.push_str("ful");
+                return word;
+            }
+            else if word.ends_with("ousness") && measure_greater_than_0(&my_truncate(word.clone(), 7)) {
+                word.truncate(word.chars().count()-7);
+                word.push_str("ous");
+                return word;
+            },
+        Some('t') => 
+            if word.ends_with("aliti") && measure_greater_than_0(&my_truncate(word.clone(), 5)) {
+                word.truncate(word.chars().count()-5);
+                word.push_str("al");
+                return word;
+            }
+            else if word.ends_with("iviti") && measure_greater_than_0(&my_truncate(word.clone(), 5)) {
+                word.truncate(word.chars().count()-5);
+                word.push_str("ive");
+                return word;
+            }
+            else if word.ends_with("biliti") && measure_greater_than_0(&my_truncate(word.clone(), 6)) {
+                word.truncate(word.chars().count()-6);
+                word.push_str("ble");
+                return word;
+            },
         _ => return word,
     }
     return word;
 }
 
-fn stem2_3_helper(word: String, end: String, append: String) -> bool {
-    if word.ends_with(end.as_str()) && measure_greater_than_0(my_truncate(word.clone(), end.len())) {
+fn stem2_3_helper(word: String, end: String) -> bool {
+    if word.ends_with(end.as_str()) && measure_greater_than_0(&my_truncate(word.clone(), end.chars().count())) {
         return true;
     }
     return false;
 }
 fn stem2_3_helper_2(word: String, end: String, append: String) -> String {
-    let mut my_word = my_truncate(word, end.len());
+    let mut my_word = my_truncate(word, end.chars().count());
     my_word.push_str(append.as_str());
     return my_word;
 }
 
 fn stem3(word: String) -> String {
-    let letter = get_char_at_position(&word, word.len()-1);
+    let letter = get_char_at_position(&word, word.chars().count()-1);
     match letter {
-        Some('a') => if stem2_3_helper(word.clone(), String::from("ical"), String::from("ic")) {
+        Some('a') => if stem2_3_helper(word.clone(), String::from("ical")) {
             return stem2_3_helper_2(word, String::from("ical"), String::from("ic"));
         },
-        Some('t') => if stem2_3_helper(word.clone(), String::from("icate"), String::from("ic")) {
+        Some('t') => if stem2_3_helper(word.clone(), String::from("icate")) {
             return stem2_3_helper_2(word, String::from("icate"), String::from("ic"));
         }
-        else if stem2_3_helper(word.clone(), String::from("iciti"), String::from("ic")) {
+        else if stem2_3_helper(word.clone(), String::from("iciti")) {
             return stem2_3_helper_2(word, String::from("iciti"), String::from("ic"));
         },
-        Some('u') => if stem2_3_helper(word.clone(), String::from("ful"), String::from("")) {
+        Some('u') => if stem2_3_helper(word.clone(), String::from("ful")) {
             return stem2_3_helper_2(word, String::from("ful"), String::from(""));
         },
-        Some('s') => if stem2_3_helper(word.clone(), String::from("ness"), String::from("")) {
+        Some('s') => if stem2_3_helper(word.clone(), String::from("ness")) {
             return stem2_3_helper_2(word, String::from("ness"), String::from(""));
         },
-        Some('v') => if stem2_3_helper(word.clone(), String::from("ative"), String::from("")) {
+        Some('v') => if stem2_3_helper(word.clone(), String::from("ative")) {
             return stem2_3_helper_2(word, String::from("ative"), String::from(""));
         },
-        Some('z') => if stem2_3_helper(word.clone(), String::from("alize"), String::from("al")) {
+        Some('z') => if stem2_3_helper(word.clone(), String::from("alize")) {
             return stem2_3_helper_2(word, String::from("alize"), String::from("al"));
         },
         _ => return word,
@@ -352,18 +356,18 @@ fn stem3(word: String) -> String {
 }
 
 fn stem4_helper(word: String, end: String) -> bool {
-    if word.ends_with(end.as_str()) && measure_greater_than_1(my_truncate(word.clone(), end.len())) {
+    if word.ends_with(end.as_str()) && measure_greater_than_1(&my_truncate(word.clone(), end.chars().count())) {
         return true;
     }
     return false;
 }
 fn stem4_helper_2(word: String, end: String) -> String {
-    let my_word = my_truncate(word, end.len());
+    let my_word = my_truncate(word, end.chars().count());
     return my_word;
 }
 
 fn stem4(word: String) -> String {
-    let letter = get_char_at_position(&word, word.len()-1);
+    let letter = get_char_at_position(&word, word.chars().count()-1);
     match letter {
         Some('a') => if stem4_helper(word.clone(), String::from("al")) {
             return stem4_helper_2(word, String::from("al"));
@@ -398,8 +402,8 @@ fn stem4(word: String) -> String {
         else if stem4_helper(word.clone(), String::from("ent")) {
             return stem4_helper_2(word, String::from("ent"));
         },
-        Some('o') => if word.ends_with("ion") && measure_greater_than_1(my_truncate(word.clone(), word.len()-4)) {
-            let letter2 = get_char_at_position(&word, word.len()-3);
+        Some('o') => if word.ends_with("ion") && measure_greater_than_1(&my_truncate(word.clone(), word.chars().count()-4)) {
+            let letter2 = get_char_at_position(&word, word.chars().count()-3);
             match letter2 {
                 Some('s') | Some('t') => return stem4_helper_2(word, String::from("ion")),
                 _ => return word,
@@ -431,9 +435,9 @@ fn stem4(word: String) -> String {
 
 fn stem5a_helper(word: String) -> bool {
     let my_chars = word.chars();
-    if word.len() < 4 {
-        if word.len() < 4 {
-            let mut foo = my_chars.skip(word.len()-3);
+    if word.chars().count() < 4 {
+        if word.chars().count() < 4 {
+            let mut foo = my_chars.skip(word.chars().count()-3);
     
             let one = None;
             let two = foo.next();
@@ -451,7 +455,7 @@ fn stem5a_helper(word: String) -> bool {
         }
         return false;
     }
-    let mut foo = my_chars.skip(word.len()-4);
+    let mut foo = my_chars.skip(word.chars().count()-4);
     
     let one = foo.next();
     let two = foo.next();
@@ -472,10 +476,10 @@ fn stem5a_helper(word: String) -> bool {
 fn stem5a(word: String) -> String {
     let mut my_word = word.clone();
     my_word.pop();
-    if word.ends_with("e") && measure_greater_than_1(my_word.clone()) {
+    if word.ends_with("e") && measure_greater_than_1(&my_word) {
         return my_word;
     }
-    else if word.ends_with("e") && measure_equals_1(my_word.clone()) && stem5a_helper(my_word.clone()) {
+    else if word.ends_with("e") && measure_equals_1(&my_word) && stem5a_helper(my_word.clone()) {
         return my_word;
     }
     return word;
@@ -487,12 +491,12 @@ fn stem5b(word: String) -> String {
         let mut my_word = word.clone();
         my_word.pop();  
         let my_chars = word.chars();
-        let mut foo = my_chars.skip(word.len()-3);
+        let mut foo = my_chars.skip(word.chars().count()-3);
 
         let one = foo.next();
         let two = foo.next();
         let three = foo.next();
-        if measure_greater_than_1(my_word.clone()) && is_consonant(two, one) && is_consonant(three, two) {
+        if measure_greater_than_1(&my_word) && is_consonant(two, one) && is_consonant(three, two) {
             return my_word;
         }
     }
@@ -521,89 +525,89 @@ mod tests {
 
     #[test]
     fn test_has_vowel() {
-        assert_eq!(has_vowel(String::from("test")), true);
-        assert_eq!(has_vowel(String::from("tst")), false);
-        assert_eq!(has_vowel(String::from("tsty")), true);
+        assert_eq!(has_vowel(&String::from("test")), true);
+        assert_eq!(has_vowel(&String::from("tst")), false);
+        assert_eq!(has_vowel(&String::from("tsty")), true);
     }
 
     #[test]
     fn test_measure_equals_0() {
-        assert_eq!(measure_equals_0(String::from("tr")), true);
-        assert_eq!(measure_equals_0(String::from("TR")), true);
-        assert_eq!(measure_equals_0(String::from("ee")), true);
-        assert_eq!(measure_equals_0(String::from("tree")), true);
-        assert_eq!(measure_equals_0(String::from("y")), true);
-        assert_eq!(measure_equals_0(String::from("by")), true);
-        assert_eq!(measure_equals_0(String::from("trouble")), false);
-        assert_eq!(measure_equals_0(String::from("oats")), false);
-        assert_eq!(measure_equals_0(String::from("trees")), false);
-        assert_eq!(measure_equals_0(String::from("ivy")), false);
-        assert_eq!(measure_equals_0(String::from("IVY")), false);
-        assert_eq!(measure_equals_0(String::from("troubles")), false);
-        assert_eq!(measure_equals_0(String::from("private")), false);
-        assert_eq!(measure_equals_0(String::from("oaten")), false);
-        assert_eq!(measure_equals_0(String::from("ORRERY")), false);
-        assert_eq!(measure_equals_0(String::from("orrery")), false);
+        assert_eq!(measure_equals_0(&String::from("tr")), true);
+        assert_eq!(measure_equals_0(&String::from("TR")), true);
+        assert_eq!(measure_equals_0(&String::from("ee")), true);
+        assert_eq!(measure_equals_0(&String::from("tree")), true);
+        assert_eq!(measure_equals_0(&String::from("y")), true);
+        assert_eq!(measure_equals_0(&String::from("by")), true);
+        assert_eq!(measure_equals_0(&String::from("trouble")), false);
+        assert_eq!(measure_equals_0(&String::from("oats")), false);
+        assert_eq!(measure_equals_0(&String::from("trees")), false);
+        assert_eq!(measure_equals_0(&String::from("ivy")), false);
+        assert_eq!(measure_equals_0(&String::from("IVY")), false);
+        assert_eq!(measure_equals_0(&String::from("troubles")), false);
+        assert_eq!(measure_equals_0(&String::from("private")), false);
+        assert_eq!(measure_equals_0(&String::from("oaten")), false);
+        assert_eq!(measure_equals_0(&String::from("ORRERY")), false);
+        assert_eq!(measure_equals_0(&String::from("orrery")), false);
     }
 
     #[test]
     fn test_measure_equals_1() {
-        assert_eq!(measure_equals_1(String::from("tr")), false);
-        assert_eq!(measure_equals_1(String::from("TR")), false);
-        assert_eq!(measure_equals_1(String::from("ee")), false);
-        assert_eq!(measure_equals_1(String::from("tree")), false);
-        assert_eq!(measure_equals_1(String::from("y")), false);
-        assert_eq!(measure_equals_1(String::from("by")), false);
-        assert_eq!(measure_equals_1(String::from("trouble")), true);
-        assert_eq!(measure_equals_1(String::from("oats")), true);
-        assert_eq!(measure_equals_1(String::from("trees")), true);
-        assert_eq!(measure_equals_1(String::from("ivy")), true);
-        assert_eq!(measure_equals_1(String::from("IVY")), true);
-        assert_eq!(measure_equals_1(String::from("troubles")), false);
-        assert_eq!(measure_equals_1(String::from("private")), false);
-        assert_eq!(measure_equals_1(String::from("oaten")), false);
-        assert_eq!(measure_equals_1(String::from("ORRERY")), false);
-        assert_eq!(measure_equals_1(String::from("orrery")), false);
+        assert_eq!(measure_equals_1(&String::from("tr")), false);
+        assert_eq!(measure_equals_1(&String::from("TR")), false);
+        assert_eq!(measure_equals_1(&String::from("ee")), false);
+        assert_eq!(measure_equals_1(&String::from("tree")), false);
+        assert_eq!(measure_equals_1(&String::from("y")), false);
+        assert_eq!(measure_equals_1(&String::from("by")), false);
+        assert_eq!(measure_equals_1(&String::from("trouble")), true);
+        assert_eq!(measure_equals_1(&String::from("oats")), true);
+        assert_eq!(measure_equals_1(&String::from("trees")), true);
+        assert_eq!(measure_equals_1(&String::from("ivy")), true);
+        assert_eq!(measure_equals_1(&String::from("IVY")), true);
+        assert_eq!(measure_equals_1(&String::from("troubles")), false);
+        assert_eq!(measure_equals_1(&String::from("private")), false);
+        assert_eq!(measure_equals_1(&String::from("oaten")), false);
+        assert_eq!(measure_equals_1(&String::from("ORRERY")), false);
+        assert_eq!(measure_equals_1(&String::from("orrery")), false);
     }
 
     #[test]
     fn test_measure_greater_than_1() {
-        assert_eq!(measure_greater_than_1(String::from("tr")), false);
-        assert_eq!(measure_greater_than_1(String::from("TR")), false);
-        assert_eq!(measure_greater_than_1(String::from("ee")), false);
-        assert_eq!(measure_greater_than_1(String::from("tree")), false);
-        assert_eq!(measure_greater_than_1(String::from("y")), false);
-        assert_eq!(measure_greater_than_1(String::from("by")), false);
-        assert_eq!(measure_greater_than_1(String::from("trouble")), false);
-        assert_eq!(measure_greater_than_1(String::from("oats")), false);
-        assert_eq!(measure_greater_than_1(String::from("trees")), false);
-        assert_eq!(measure_greater_than_1(String::from("ivy")), false);
-        assert_eq!(measure_greater_than_1(String::from("IVY")), false);
-        assert_eq!(measure_greater_than_1(String::from("troubles")), true);
-        assert_eq!(measure_greater_than_1(String::from("private")), true);
-        assert_eq!(measure_greater_than_1(String::from("oaten")), true);
-        assert_eq!(measure_greater_than_1(String::from("ORRERY")), true);
-        assert_eq!(measure_greater_than_1(String::from("orrery")), true);
+        assert_eq!(measure_greater_than_1(&String::from("tr")), false);
+        assert_eq!(measure_greater_than_1(&String::from("TR")), false);
+        assert_eq!(measure_greater_than_1(&String::from("ee")), false);
+        assert_eq!(measure_greater_than_1(&String::from("tree")), false);
+        assert_eq!(measure_greater_than_1(&String::from("y")), false);
+        assert_eq!(measure_greater_than_1(&String::from("by")), false);
+        assert_eq!(measure_greater_than_1(&String::from("trouble")), false);
+        assert_eq!(measure_greater_than_1(&String::from("oats")), false);
+        assert_eq!(measure_greater_than_1(&String::from("trees")), false);
+        assert_eq!(measure_greater_than_1(&String::from("ivy")), false);
+        assert_eq!(measure_greater_than_1(&String::from("IVY")), false);
+        assert_eq!(measure_greater_than_1(&String::from("troubles")), true);
+        assert_eq!(measure_greater_than_1(&String::from("private")), true);
+        assert_eq!(measure_greater_than_1(&String::from("oaten")), true);
+        assert_eq!(measure_greater_than_1(&String::from("ORRERY")), true);
+        assert_eq!(measure_greater_than_1(&String::from("orrery")), true);
     }
 
     #[test]
     fn test_measure_greater_than_0() {
-        assert_eq!(measure_greater_than_0(String::from("tr")), false);
-        assert_eq!(measure_greater_than_0(String::from("TR")), false);
-        assert_eq!(measure_greater_than_0(String::from("ee")), false);
-        assert_eq!(measure_greater_than_0(String::from("tree")), false);
-        assert_eq!(measure_greater_than_0(String::from("y")), false);
-        assert_eq!(measure_greater_than_0(String::from("by")), false);
-        assert_eq!(measure_greater_than_0(String::from("trouble")), true);
-        assert_eq!(measure_greater_than_0(String::from("oats")), true);
-        assert_eq!(measure_greater_than_0(String::from("trees")), true);
-        assert_eq!(measure_greater_than_0(String::from("ivy")), true);
-        assert_eq!(measure_greater_than_0(String::from("IVY")), true);
-        assert_eq!(measure_greater_than_0(String::from("troubles")), true);
-        assert_eq!(measure_greater_than_0(String::from("private")), true);
-        assert_eq!(measure_greater_than_0(String::from("oaten")), true);
-        assert_eq!(measure_greater_than_0(String::from("ORRERY")), true);
-        assert_eq!(measure_greater_than_0(String::from("orrery")), true);
+        assert_eq!(measure_greater_than_0(&String::from("tr")), false);
+        assert_eq!(measure_greater_than_0(&String::from("TR")), false);
+        assert_eq!(measure_greater_than_0(&String::from("ee")), false);
+        assert_eq!(measure_greater_than_0(&String::from("tree")), false);
+        assert_eq!(measure_greater_than_0(&String::from("y")), false);
+        assert_eq!(measure_greater_than_0(&String::from("by")), false);
+        assert_eq!(measure_greater_than_0(&String::from("trouble")), true);
+        assert_eq!(measure_greater_than_0(&String::from("oats")), true);
+        assert_eq!(measure_greater_than_0(&String::from("trees")), true);
+        assert_eq!(measure_greater_than_0(&String::from("ivy")), true);
+        assert_eq!(measure_greater_than_0(&String::from("IVY")), true);
+        assert_eq!(measure_greater_than_0(&String::from("troubles")), true);
+        assert_eq!(measure_greater_than_0(&String::from("private")), true);
+        assert_eq!(measure_greater_than_0(&String::from("oaten")), true);
+        assert_eq!(measure_greater_than_0(&String::from("ORRERY")), true);
+        assert_eq!(measure_greater_than_0(&String::from("orrery")), true);
     }
 
     #[test]
@@ -625,10 +629,10 @@ mod tests {
 
     #[test]
     fn test_stem1a() {
-        assert_eq!(stem1a(String::from("caresses")), String::from("caress"));
-        assert_eq!(stem1a(String::from("ponies")), String::from("poni"));
-        assert_eq!(stem1a(String::from("caress")), String::from("caress"));
-        assert_eq!(stem1a(String::from("cats")), String::from("cat"));
+        assert_eq!(String::from(stem1a(String::from("caresses"))), String::from("caress"));
+        assert_eq!(String::from(stem1a(String::from("ponies"))), String::from("poni"));
+        assert_eq!(String::from(stem1a(String::from("caress"))), String::from("caress"));
+        assert_eq!(String::from(stem1a(String::from("cats"))), String::from("cat"));
     }
 
     #[test]
@@ -665,7 +669,7 @@ mod tests {
         assert_eq!(get_char_at_position(&String::from("fubar"), 5), Some('r'));
         assert_eq!(get_char_at_position(&String::from("fubar"), 6), None);
         let foo = String::from("fubar");
-        assert_eq!(get_char_at_position(&foo, foo.len()), Some('r'));
+        assert_eq!(get_char_at_position(&foo, foo.chars().count()), Some('r'));
 
 
     }
@@ -735,10 +739,6 @@ mod tests {
     }
 
     #[test]
-    fn test_foo() {
-        assert_eq!(measure_equals_1(String::from("ceas")), true);
-    }
-    #[test]
     fn test_stem5a() {
         assert_eq!(stem5a(String::from("probate")), String::from("probat"));
         assert_eq!(stem5a(String::from("rate")), String::from("rate"));
@@ -746,13 +746,6 @@ mod tests {
         assert_eq!(stem5a(String::from("trouble")), String::from("troubl"));
         assert_eq!(stem5a(String::from("trocawe")), String::from("trocaw"));
         assert_eq!(stem5a(String::from("pcace")), String::from("pcace"));
-    }
-
-    #[test]
-    fn test_me() {
-        assert_eq!(stem5a_helper(String::from("troubl")), true);
-        assert_eq!(stem5a_helper(String::from("ceas")), true);
-        assert_eq!(stem5a_helper(String::from("rat")), true);
     }
 
     #[test]
