@@ -1,11 +1,8 @@
 [package]
-name = "search"
+name = "stemmer"
 version = "0.1.0"
 authors = ["James Woodward <james@matoch.com>"]
 edition = "2018"
 description = "An implementation of the Porter Stemming Algorithm"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-regex = "1"

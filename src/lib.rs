@@ -69,7 +69,7 @@ fn measure_with_limit(word: &String, max: usize) -> usize {
 }
 
 
-fn stem(word: String) -> String {
+pub fn stem(word: String) -> String {
     if word.len() > 2 {
         let mut my_word = word.to_lowercase().trim().to_string();
         my_word = stem1a(my_word);
@@ -502,6 +502,7 @@ fn stem5b(mut word: String) -> String {
 }
 
 mod tests {
+    #[allow(unused_imports)]
     use super::*;
 
     #[test]
