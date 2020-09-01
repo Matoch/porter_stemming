@@ -30,14 +30,23 @@ fn has_vowel(word: &String) -> bool {
 }
 
 fn measure(word: &String) -> usize {
+    let measure = measure_with_limit(&word, word.len());
+    return measure;
+}
+
+fn measure_with_limit(word: &String, max: usize) -> usize {
     let my_chars = word.chars();
     let mut previous: Option<char>;
     let mut current: Option<char> = None;
     let mut count = 0;
     let mut current_consonant = false;
     let mut begin_counting = false;
+    let mut position: usize = 0;
 
     for my_char in my_chars {
+        if position == max {
+            return count;
+        }
         previous = current;
         current = Some(my_char);
         if !begin_counting {
@@ -49,12 +58,15 @@ fn measure(word: &String) -> usize {
             current_consonant = !current_consonant;
             // Only increase count when we go from vowel to consonant
             if current_consonant {
-                count = count + 1;
+                count += 1;
             }
         }
+        position += 1;
     }
     return count;
 }
+
+
 fn stem(word: String) -> String {
     if word.len() > 2 {
         let mut my_word = word.to_lowercase().trim().to_string();
@@ -122,11 +134,12 @@ fn get_char_at_position(word: &String, position: usize) -> Option<char> {
     if position == 0 {
         return None;
     }
-    let mut my_chars = word.chars().skip(position-1);
+    let mut my_chars = word.chars().skip(position-1);          
     let my_char = my_chars.next();
     return my_char;
 }
 
+// Can probably be improved if we just grab the last 3 letters and use them directly instead of the get_char_at_position. Should result in fewer skips etc.
 fn stem1bresolve(mut word: String) -> String {
     println!("{}", word);
     if word.ends_with("at") || word.ends_with("bl") || word.ends_with("iz") {
@@ -171,118 +184,113 @@ fn stem1c(mut word: String) -> String {
     return word;
 }
 
-fn my_truncate(mut word: String, remove: usize) -> String {
-    word.truncate(word.len() - remove);
-    return word;
-}
-
 fn stem2(mut word: String) -> String {
     let letter = get_char_at_position(&word, word.len()-1);
     match letter {
         Some('a') => 
-            if word.ends_with("ational") && measure(&my_truncate(word.clone(), 7)) > 0 {
+            if word.ends_with("ational") && measure_with_limit(&word,  word.len() - 7) > 0 {
                 word.truncate(word.len()-7);
                 word.push_str("ate");
                 return word;
             }
-            else if word.ends_with("tional") && measure(&my_truncate(word.clone(), 6)) > 0 {
+            else if word.ends_with("tional") && measure_with_limit(&word,  word.len() - 6) > 0 {
                 word.truncate(word.len()-6);
                 word.push_str("tion");
                 return word;
             },  
 
         Some('c') => 
-            if word.ends_with("enci") && measure(&my_truncate(word.clone(), 4)) > 0 {
+            if word.ends_with("enci") && measure_with_limit(&word,  word.len() - 4) > 0 {
                 word.truncate(word.len()-4);
                 word.push_str("ence");
                 return word;
             }
-            else if word.ends_with("anci") && measure(&my_truncate(word.clone(), 4)) > 0 {
+            else if word.ends_with("anci") && measure_with_limit(&word,  word.len() - 4) > 0 {
                 word.truncate(word.len()-4);
                 word.push_str("ance");
                 return word;
             },
         Some('e') => 
-            if word.ends_with("izer") && measure(&my_truncate(word.clone(), 4)) > 0 {
+            if word.ends_with("izer") && measure_with_limit(&word,  word.len() - 4) > 0 {
                 word.truncate(word.len()-4);
                 word.push_str("ize");
                 return word;
             },
         Some('l') => 
-            if word.ends_with("abli") && measure(&my_truncate(word.clone(), 4)) > 0 {
+            if word.ends_with("abli") && measure_with_limit(&word,  word.len() - 4) > 0 {
                 word.truncate(word.len()-4);
                 word.push_str("able");
                 return word;
             }
-            else if word.ends_with("alli") && measure(&my_truncate(word.clone(), 4)) > 0 {
+            else if word.ends_with("alli") && measure_with_limit(&word,  word.len() - 4) > 0 {
                 word.truncate(word.len()-4);
                 word.push_str("al");
                 return word;
             }
-            else if word.ends_with("entli") && measure(&my_truncate(word.clone(), 5)) > 0 {
+            else if word.ends_with("entli") && measure_with_limit(&word,  word.len() - 5) > 0 {
                 word.truncate(word.len()-5);
                 word.push_str("ent");
                 return word;
             }
-            else if word.ends_with("ousli") && measure(&my_truncate(word.clone(), 5)) > 0 {
+            else if word.ends_with("ousli") && measure_with_limit(&word,  word.len() - 5) > 0 {
                 word.truncate(word.len()-5);
                 word.push_str("ous");
                 return word;
             }
-            else if word.ends_with("eli") && measure(&my_truncate(word.clone(), 3)) > 0 {
+            else if word.ends_with("eli") && measure_with_limit(&word,  word.len() - 3) > 0 {
                 word.truncate(word.len()-3);
                 word.push_str("e");
                 return word;
             },
         Some('o') => 
-            if word.ends_with("ization") && measure(&my_truncate(word.clone(), 7)) > 0 {
+            if word.ends_with("ization") && measure_with_limit(&word,  word.len() - 7) > 0 {
                 word.truncate(word.len()-7);
                 word.push_str("ize");
                 return word;
             }
-            else if word.ends_with("ation") && measure(&my_truncate(word.clone(), 5)) > 0 {
+            else if word.ends_with("ation") && measure_with_limit(&word,  word.len() - 5) > 0 {
                 word.truncate(word.len()-5);
                 word.push_str("ate");
                 return word;
             }
-            else if word.ends_with("ator") && measure(&my_truncate(word.clone(), 4)) > 0 {
+            else if word.ends_with("ator") && measure_with_limit(&word,  word.len() - 4) > 0 {
                 word.truncate(word.len()-4);
                 word.push_str("ate");
                 return word;
             },
         Some('s') => 
-            if word.ends_with("alism") && measure(&my_truncate(word.clone(), 5)) > 0 {
+            if word.ends_with("alism") && measure_with_limit(&word,  word.len() - 5) > 0 {
                 word.truncate(word.len()-5);
                 word.push_str("al");
                 return word;
             }
-            else if word.ends_with("iveness") && measure(&my_truncate(word.clone(), 7)) > 0 {
+            else if word.ends_with("iveness") && measure_with_limit(&word,  word.len() - 7) > 0 {
                 word.truncate(word.len()-7);
                 word.push_str("ive");
                 return word;
             }
-            else if word.ends_with("fulness") && measure(&my_truncate(word.clone(), 7)) > 0 {
+            else if word.ends_with("fulness") && measure_with_limit(&word,  word.len() - 7) > 0 {
                 word.truncate(word.len()-7);
                 word.push_str("ful");
                 return word;
             }
-            else if word.ends_with("ousness") && measure(&my_truncate(word.clone(), 7)) > 0 {
+            else if word.ends_with("ousness") && measure_with_limit(&word,  word.len() - 7) > 0 {
                 word.truncate(word.len()-7);
                 word.push_str("ous");
                 return word;
             },
         Some('t') => 
-            if word.ends_with("aliti") && measure(&my_truncate(word.clone(), 5)) > 0 {
+            if word.ends_with("aliti") && measure_with_limit(&word,  word.len() - 5) > 0 {
                 word.truncate(word.len()-5);
                 word.push_str("al");
                 return word;
             }
-            else if word.ends_with("iviti") && measure(&my_truncate(word.clone(), 5)) > 0 {
+            else if word.ends_with("iviti") && measure_with_limit(&word,  word.len() - 5) > 0 {
                 word.truncate(word.len()-5);
                 word.push_str("ive");
                 return word;
             }
-            else if word.ends_with("biliti") && measure(&my_truncate(word.clone(), 6)) > 0 {
+            else if word.ends_with("biliti") && measure_with_limit(&word,  word.len() - 6) > 0 {
                 word.truncate(word.len()-6);
                 word.push_str("ble");
                 return word;
@@ -292,42 +300,40 @@ fn stem2(mut word: String) -> String {
     return word;
 }
 
-fn stem2_3_helper(word: String, end: String) -> bool {
-    if word.ends_with(end.as_str()) && measure(&my_truncate(word.clone(), end.len())) > 0 {
-        return true;
-    }
-    return false;
-}
-fn stem2_3_helper_2(word: String, end: String, append: String) -> String {
-    let mut my_word = my_truncate(word, end.len());
-    my_word.push_str(append.as_str());
-    return my_word;
-}
-
-fn stem3(word: String) -> String {
+fn stem3(mut word: String) -> String {
     let letter = get_char_at_position(&word, word.len()-1);
     match letter {
-        Some('a') => if stem2_3_helper(word.clone(), String::from("ical")) {
-            return stem2_3_helper_2(word, String::from("ical"), String::from("ic"));
-        },
-        Some('t') => if stem2_3_helper(word.clone(), String::from("icate")) {
-            return stem2_3_helper_2(word, String::from("icate"), String::from("ic"));
-        }
-        else if stem2_3_helper(word.clone(), String::from("iciti")) {
-            return stem2_3_helper_2(word, String::from("iciti"), String::from("ic"));
-        },
-        Some('u') => if stem2_3_helper(word.clone(), String::from("ful")) {
-            return stem2_3_helper_2(word, String::from("ful"), String::from(""));
-        },
-        Some('s') => if stem2_3_helper(word.clone(), String::from("ness")) {
-            return stem2_3_helper_2(word, String::from("ness"), String::from(""));
-        },
-        Some('v') => if stem2_3_helper(word.clone(), String::from("ative")) {
-            return stem2_3_helper_2(word, String::from("ative"), String::from(""));
-        },
-        Some('z') => if stem2_3_helper(word.clone(), String::from("alize")) {
-            return stem2_3_helper_2(word, String::from("alize"), String::from("al"));
-        },
+        Some('a') => 
+            if word.ends_with("ical") && measure_with_limit(&word, word.len()-4) > 0 {
+                word.truncate(word.len()-4);
+                word.push_str("ic");
+            },
+        Some('t') =>
+            if word.ends_with("icate") && measure_with_limit(&word, word.len()-5) > 0 {
+                word.truncate(word.len()-5);
+                word.push_str("ic");
+            }
+            else if word.ends_with("iciti") && measure_with_limit(&word, word.len()-5) > 0 {
+                word.truncate(word.len()-5);
+                word.push_str("ic");
+            },
+        Some('u') => 
+            if word.ends_with("ful") && measure_with_limit(&word, word.len()-3) > 0 {
+                word.truncate(word.len()-3);
+            },
+        Some('s') => 
+            if word.ends_with("ness") && measure_with_limit(&word, word.len()-4) > 0 {
+                word.truncate(word.len()-4);
+            },
+        Some('v') => 
+            if word.ends_with("ative") && measure_with_limit(&word, word.len()-5) > 0 {
+                word.truncate(word.len()-5);
+            },
+        Some('z') => 
+            if word.ends_with("alize") && measure_with_limit(&word, word.len()-5) > 0 {
+                word.truncate(word.len()-5);
+                word.push_str("al");
+            },
         _ => return word,
 
     }
@@ -335,16 +341,19 @@ fn stem3(word: String) -> String {
 }
 
 fn stem4_helper(word: String, end: String) -> bool {
-    if word.ends_with(end.as_str()) && measure(&my_truncate(word.clone(), end.len())) > 1 {
+    if word.ends_with(end.as_str()) && measure_with_limit(&word,  word.len() - end.len()) > 1 {
         return true;
     }
     return false;
 }
-fn stem4_helper_2(word: String, end: String) -> String {
-    let my_word = my_truncate(word, end.len());
-    return my_word;
+fn stem4_helper_2(mut word: String, end: String) -> String {
+    word.truncate(word.len()-end.len());
+    return word;
 }
 
+// Drop the calls to stem4_helper and implement directly. Nothing is destructive so we don't need the clone and the login isn't 
+// as bad as it was
+// Drop the calls to stem4_helper_2 we can simply truncate each word and have the single return at the end.
 fn stem4(word: String) -> String {
     let letter = get_char_at_position(&word, word.len()-1);
     match letter {
@@ -381,7 +390,7 @@ fn stem4(word: String) -> String {
         else if stem4_helper(word.clone(), String::from("ent")) {
             return stem4_helper_2(word, String::from("ent"));
         },
-        Some('o') => if word.ends_with("ion") && measure(&my_truncate(word.clone(), word.len()-4)) > 1 {
+        Some('o') => if word.ends_with("ion") && measure_with_limit(&word,  word.len() - 4) > 1 {
             let letter2 = get_char_at_position(&word, word.len()-3);
             match letter2 {
                 Some('s') | Some('t') => return stem4_helper_2(word, String::from("ion")),
@@ -505,6 +514,23 @@ mod tests {
         assert_eq!(measure(&String::from("private")), 2);
         assert_eq!(measure(&String::from("oaten")), 2);
         assert_eq!(measure(&String::from("orrery")), 2);
+    }
+
+    #[test]
+    fn test_measure_with_limit() {
+        assert_eq!(measure_with_limit(&String::from("troubles"), 4), 0);
+        assert_eq!(measure_with_limit(&String::from("troubles"), 5), 1);
+        assert_eq!(measure_with_limit(&String::from("private"), 4), 1);
+        assert_eq!(measure_with_limit(&String::from("oaten"), 5), 2);
+        assert_eq!(measure_with_limit(&String::from("oaten"), 4), 1);
+        assert_eq!(measure_with_limit(&String::from("oaten"), 3), 1);
+        assert_eq!(measure_with_limit(&String::from("oaten"), 2), 0);
+        assert_eq!(measure_with_limit(&String::from("orrery"), 6), 2);
+        assert_eq!(measure_with_limit(&String::from("orrery"), 5), 2);
+        assert_eq!(measure_with_limit(&String::from("orrery"), 4), 1);
+        assert_eq!(measure_with_limit(&String::from("orrery"), 3), 1);
+        assert_eq!(measure_with_limit(&String::from("orrery"), 2), 1);
+        assert_eq!(measure_with_limit(&String::from("orrery"), 1), 0);
     }
 
     #[test]
