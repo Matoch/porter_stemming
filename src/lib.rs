@@ -18,15 +18,24 @@ fn is_consonant(current: Option<char>, previous: Option<char>) -> bool {
 }
 
 fn has_vowel(word: &String) -> bool {
+    return has_vowel_with_limit(&word, word.len());
+}
+
+fn has_vowel_with_limit(word: &String, max: usize) -> bool {
     let my_chars = word.chars();
     let mut previous: Option<char>;
     let mut current: Option<char> = None;
+    let mut count: usize = 1;
     for my_char in my_chars {
+        if count > max {
+            return false;
+        }
         previous = current;
         current = Some(my_char);
         if !is_consonant(current, previous) {
             return true;
         };
+        count += 1;
     }
     return false;
 }
@@ -46,6 +55,7 @@ fn measure_with_limit(word: &String, max: usize) -> usize {
     let mut position: usize = 0;
 
     for my_char in my_chars {
+        println!("{}", my_char);
         if position == max {
             return count;
         }
@@ -105,26 +115,21 @@ fn stem1a(mut word: String) -> String {
 }
 
 fn stem1b(mut word: String) -> String {
+    println!("{}", word);
     if word.ends_with("eed") {
-        let mut measure_word = word.clone();
-        measure_word.truncate(measure_word.len()-3);
-        if measure(&measure_word) > 0 {
+        if measure_with_limit(&word, word.len()-3) > 0 {
             word.truncate(word.len()-1);
             return word;
         }
     }
     else if word.ends_with("ed") {
-        let mut measure_word = word.to_lowercase();
-        measure_word.truncate(measure_word.len()-2);
-        if has_vowel(&measure_word) {
+        if has_vowel_with_limit(&word, word.len()-2) {
             word.truncate(word.len()-2);
             return stem1bresolve(word);
         }
     }
-    else  if word.ends_with("ing") {
-        let mut measure_word = word.to_lowercase();
-        measure_word.truncate(measure_word.len()-3);
-        if has_vowel(&measure_word) {
+    else if word.ends_with("ing") {
+        if has_vowel_with_limit(&word, word.len()-3) {
             word.truncate(word.len()-3);
             return stem1bresolve(word);
         }
@@ -144,18 +149,23 @@ fn get_char_at_position(word: &String, position: usize) -> Option<char> {
 // Can probably be improved if we just grab the last 3 letters and use them directly instead of the get_char_at_position. Should result in fewer skips etc.
 fn stem1bresolve(mut word: String) -> String {
     let mut my_chars: Skip<Chars>;
-    let one: Option<char>;
-
-    if word.len() < 4 {
-        my_chars = word.chars().skip(word.len()-3);
-        one = None;
-    }
-    else {
+    let mut one: Option<char> = None;
+    let mut two: Option<char> = None;
+    if word.len() >=4 {
         my_chars = word.chars().skip(word.len()-4);
         one = my_chars.next();
-
+        two = my_chars.next();
     }
-    let two = my_chars.next();
+    else if word.len() == 3 {
+        my_chars = word.chars().skip(word.len()-3);
+        two = my_chars.next();
+    }
+    else if word.len() == 2 {
+        my_chars = word.chars().skip(word.len()-2);
+    }
+    else {
+        return word;
+    }
     let three = my_chars.next();
     let four = my_chars.next();
     if word.ends_with("at") || word.ends_with("bl") || word.ends_with("iz") {
