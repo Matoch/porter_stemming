@@ -1,3 +1,5 @@
+use std::str::Chars;
+use std::iter::Skip;
 // A \consonant\ in a word is a letter other than A, E, I, O or U, and other
 // than Y preceded by a consonant. (The fact that the term `consonant' is
 // defined to some extent in terms of itself does not make it ambiguous.) So in
@@ -141,34 +143,44 @@ fn get_char_at_position(word: &String, position: usize) -> Option<char> {
 
 // Can probably be improved if we just grab the last 3 letters and use them directly instead of the get_char_at_position. Should result in fewer skips etc.
 fn stem1bresolve(mut word: String) -> String {
-    println!("{}", word);
+    let mut my_chars: Skip<Chars>;
+    let one: Option<char>;
+
+    if word.len() < 4 {
+        my_chars = word.chars().skip(word.len()-3);
+        one = None;
+    }
+    else {
+        my_chars = word.chars().skip(word.len()-4);
+        one = my_chars.next();
+
+    }
+    let two = my_chars.next();
+    let three = my_chars.next();
+    let four = my_chars.next();
     if word.ends_with("at") || word.ends_with("bl") || word.ends_with("iz") {
         word.push('e');
         return word;
     }
-    else if (get_char_at_position(&word, word.len()) == get_char_at_position(&word, word.len()-1)) && 
-        is_consonant(get_char_at_position(&word, word.len()-1), get_char_at_position(&word, word.len()-2)) {
-            let foo = get_char_at_position(&word, word.len()-1);
-            match  foo {
-                Some('l') | Some('s') | Some('z') => return word,
-                _ => {
-                    word.pop();
-                    return word;
-                }
+    else if four == three && is_consonant(three, two) {
+        match  three {                
+            Some('l') | Some('s') | Some('z') => return word,
+            _ => {
+                word.pop();
+                return word;
+            }
 
-            }
+        }
     }
-    else if measure(&word) == 1 && 
-        is_consonant(get_char_at_position(&word, word.len()), get_char_at_position(&word, word.len()-1)) &&
-        !is_consonant(get_char_at_position(&word, word.len()-1), get_char_at_position(&word, word.len()-2)) &&
-        is_consonant(get_char_at_position(&word, word.len()-2), get_char_at_position(&word, word.len()-3)) {
-            if word.ends_with('w') | word.ends_with('x') | word.ends_with('y') {
-                return word;
-            }
-            else {
-                word.push('e');
-                return word;
-            }
+    else if measure(&word) == 1 && is_consonant(four, three) && 
+            !is_consonant(three, two) && is_consonant(two, one) {
+        if word.ends_with('w') | word.ends_with('x') | word.ends_with('y') {
+            return word;
+        }
+        else {
+            word.push('e');
+            return word;
+        }
     }
     return word;
     
@@ -340,115 +352,132 @@ fn stem3(mut word: String) -> String {
     return word;
 }
 
-fn stem4_helper(word: String, end: String) -> bool {
-    if word.ends_with(end.as_str()) && measure_with_limit(&word,  word.len() - end.len()) > 1 {
-        return true;
-    }
-    return false;
-}
-fn stem4_helper_2(mut word: String, end: String) -> String {
-    word.truncate(word.len()-end.len());
-    return word;
-}
-
-// Drop the calls to stem4_helper and implement directly. Nothing is destructive so we don't need the clone and the login isn't 
-// as bad as it was
-// Drop the calls to stem4_helper_2 we can simply truncate each word and have the single return at the end.
-fn stem4(word: String) -> String {
+fn stem4(mut word: String) -> String {
     let letter = get_char_at_position(&word, word.len()-1);
     match letter {
-        Some('a') => if stem4_helper(word.clone(), String::from("al")) {
-            return stem4_helper_2(word, String::from("al"));
+        Some('a') => if word.ends_with("al") && measure_with_limit(&word, word.len() - 2) > 1 {
+            word.truncate(word.len()-2);
+            return word;
         },
-        Some('c') => if stem4_helper(word.clone(), String::from("ance")) {
-            return stem4_helper_2(word, String::from("ance"));
+        Some('c') => if word.ends_with("ance") && measure_with_limit(&word, word.len() - 4) > 1 {
+            word.truncate(word.len()-4);
+            return word;
         }
-        else if stem4_helper(word.clone(), String::from("ence")) {
-            return stem4_helper_2(word, String::from("ence"));
+        else if word.ends_with("ence")  && measure_with_limit(&word, word.len() - 4) > 1 {
+            word.truncate(word.len()-4);
+            return word;
         },
-        Some('e') => if stem4_helper(word.clone(), String::from("er")) {
-            return stem4_helper_2(word, String::from("er"));
+        Some('e') => if word.ends_with("er")  && measure_with_limit(&word, word.len() - 2) > 1 {
+            word.truncate(word.len()-2);
+            return word;
         },
-        Some('i') => if stem4_helper(word.clone(), String::from("ic")) {
-            return stem4_helper_2(word, String::from("ic"));
+        Some('i') => if word.ends_with("ic")  && measure_with_limit(&word, word.len() - 2) > 1 {
+            word.truncate(word.len()-2);
+            return word;
         },
-        Some('l') => if stem4_helper(word.clone(), String::from("able")) {
-            return stem4_helper_2(word, String::from("able"));
+        Some('l') => if word.ends_with("able")  && measure_with_limit(&word, word.len() - 4) > 1 {
+            word.truncate(word.len()-4);
+            return word;
         }
-        else if stem4_helper(word.clone(), String::from("ible")) {
-            return stem4_helper_2(word, String::from("ible"));
+        else if word.ends_with("ible")  && measure_with_limit(&word, word.len() - 4) > 1 {
+            word.truncate(word.len()-4);
+            return word;
         },
-        Some('n') => if stem4_helper(word.clone(), String::from("ant")) {
-            return stem4_helper_2(word, String::from("ant"));
+        Some('n') => if word.ends_with("ant")  && measure_with_limit(&word, word.len() - 3) > 1 {
+            word.truncate(word.len()-3);
+            return word;
         }
-        else if stem4_helper(word.clone(), String::from("ement")) {
-            return stem4_helper_2(word, String::from("ement"));
+        else if word.ends_with("ement")  && measure_with_limit(&word, word.len() - 5) > 1 {
+            word.truncate(word.len()-5);
+            return word;
         }
-        else if stem4_helper(word.clone(), String::from("ment")) {
-            return stem4_helper_2(word, String::from("ment"));
+        else if word.ends_with("ment")  && measure_with_limit(&word, word.len() - 4) > 1 {
+            word.truncate(word.len()-4);
+            return word;
         }
-        else if stem4_helper(word.clone(), String::from("ent")) {
-            return stem4_helper_2(word, String::from("ent"));
+        else if word.ends_with("ent")  && measure_with_limit(&word, word.len() - 3) > 1 {
+            word.truncate(word.len()-3);
+            return word;
         },
         Some('o') => if word.ends_with("ion") && measure_with_limit(&word,  word.len() - 4) > 1 {
             let letter2 = get_char_at_position(&word, word.len()-3);
             match letter2 {
-                Some('s') | Some('t') => return stem4_helper_2(word, String::from("ion")),
+                Some('s') | Some('t') => 
+                    { word.truncate(word.len()-3);
+                    return word },
                 _ => return word,
             }
         }
         ,
-        Some('s') => if stem4_helper(word.clone(), String::from("ism")) {
-            return stem4_helper_2(word, String::from("ism"));
+        Some('s') => if word.ends_with("ism")  && measure_with_limit(&word, word.len() - 3) > 1 {
+            word.truncate(word.len()-3);
+            return word;
         },
-        Some('t') => if stem4_helper(word.clone(), String::from("ate")) {
-            return stem4_helper_2(word, String::from("ate"));
+        Some('t') => if word.ends_with("ate")  && measure_with_limit(&word, word.len() - 3) > 1 {
+            word.truncate(word.len()-3);
+            return word;
         }
-        else if stem4_helper(word.clone(), String::from("iti")) {
-            return stem4_helper_2(word, String::from("iti"));
+        else if word.ends_with("iti")  && measure_with_limit(&word, word.len() - 3) > 1 {
+            word.truncate(word.len()-3);
+            return word;
         },
-        Some('u') => if stem4_helper(word.clone(), String::from("ous")) {
-            return stem4_helper_2(word, String::from("ous"));
+        Some('u') => if word.ends_with("ous")  && measure_with_limit(&word, word.len() - 3) > 1 {
+            word.truncate(word.len()-3);
+            return word;
         },
-        Some('v') => if stem4_helper(word.clone(), String::from("ive")) {
-            return stem4_helper_2(word, String::from("ive"));
+        Some('v') => if word.ends_with("ive")  && measure_with_limit(&word, word.len() - 3) > 1 {
+            word.truncate(word.len()-3);
+            return word;
         },
-        Some('z') => if stem4_helper(word.clone(), String::from("ize")) {
-            return stem4_helper_2(word, String::from("ize"));
+        Some('z') => if word.ends_with("ize")  && measure_with_limit(&word, word.len() - 3) > 1 {
+            word.truncate(word.len()-3);
+            return word;
         },
         _ => return word
     }
     return word;
 }
 
-fn stem5a_helper(word: String) -> bool {
+fn stem5a(mut word: String) -> String {
+    println!("{}", word);
+    let y = word.pop().unwrap();
+    println!("{}", word);
+    let mut my_chars: Skip<Chars>;
     let mut one: Option<char> = None;
+    let mut two: Option<char> = None;
     if word.len() >=4 {
-        let my_chars = word.chars();
-        let mut foo = my_chars.skip(word.len()-4);
-        one = foo.next();
+        my_chars = word.chars().skip(word.len()-4);
+        one = my_chars.next();
+        two = my_chars.next();
     }
-    let my_chars = word.chars();
-    let mut foo = my_chars.skip(word.len()-3);
-    let two = foo.next();
-    let three = foo.next();
-    let four = foo.next();
-    if !is_consonant(two, one) | is_consonant(three, two) | !is_consonant(four, three) {
-        return true;
+    else if word.len() == 3 {
+        my_chars = word.chars().skip(word.len()-3);
+        two = my_chars.next();
+    }
+    else if word.len() == 2 {
+        my_chars = word.chars().skip(word.len()-2);
     }
     else {
-        match four {
-            Some('x') | Some('y') | Some('w') => return true,
-            _ => return false,
-        }
+        word.push(y);
+        return word;
     }
-}
-
-fn stem5a(mut word: String) -> String {
-    let y = word.pop().unwrap();
+    let three = my_chars.next();
+    let four = my_chars.next();
     if y == 'e' {
-        if measure(&word) > 1 || (measure(&word)== 1 && stem5a_helper(word.clone())) {
+        if measure(&word) > 1 {
             return word;
+        }
+        else if measure(&word) == 1 {
+            if !is_consonant(two, one) | is_consonant(three, two) | !is_consonant(four, three) {
+                return word;
+            }
+            else {
+                match four {
+                    Some('x') | Some('y') | Some('w') => return word,
+                    _ => word.push(y),
+                }
+                return word;
+            }
         }
     }
     word.push(y);
