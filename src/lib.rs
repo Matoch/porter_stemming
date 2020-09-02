@@ -51,9 +51,7 @@ fn measure_with_limit(word: &str, max: usize) -> usize {
     let mut count = 0;
     let mut current_consonant = false;
     let mut begin_counting = false;
-    let mut position: usize = 0;
-
-    for my_char in my_chars {
+    for (position, my_char) in my_chars.enumerate() {
         if position == max {
             return count;
         }
@@ -70,16 +68,15 @@ fn measure_with_limit(word: &str, max: usize) -> usize {
                 count += 1;
             }
         }
-        position += 1;
     }
     count
 }
 
-fn get_char_at_position(word: &String, position: usize) -> Option<char> {
+fn get_char_at_position(word: &str, position: usize) -> Option<char> {
     if position == 0 {
         return None;
     }
-    word.chars().skip(position - 1).next()
+    word.chars().nth(position - 1)
 }
 
 pub fn stem(word: String) -> String {
@@ -100,12 +97,10 @@ pub fn stem(word: String) -> String {
 }
 
 fn stem1a(mut word: String) -> String {
-    if word.ends_with("sses") {
-        word.truncate(word.len() - 2);
-    } else if word.ends_with("ies") {
+    if word.ends_with("sses") || word.ends_with("ies") {
         word.truncate(word.len() - 2);
     } else if word.ends_with("ss") {
-    } else if word.ends_with("s") {
+    } else if word.ends_with('s') {
         word.truncate(word.len() - 1);
     }
     word
@@ -121,11 +116,9 @@ fn stem1b(mut word: String) -> String {
             word.truncate(word.len() - 2);
             return stem1bresolve(word);
         }
-    } else if word.ends_with("ing") {
-        if has_vowel_with_limit(&word, word.len() - 3) {
-            word.truncate(word.len() - 3);
-            return stem1bresolve(word);
-        }
+    } else if word.ends_with("ing") && has_vowel_with_limit(&word, word.len() - 3) {
+        word.truncate(word.len() - 3);
+        return stem1bresolve(word);
     }
     word
 }
@@ -278,10 +271,9 @@ fn stem3(mut word: String) -> String {
             }
         }
         Some('t') => {
-            if word.ends_with("icate") && measure_with_limit(&word, word.len() - 5) > 0 {
-                word.truncate(word.len() - 5);
-                word.push_str("ic");
-            } else if word.ends_with("iciti") && measure_with_limit(&word, word.len() - 5) > 0 {
+            if (word.ends_with("icate") && measure_with_limit(&word, word.len() - 5) > 0)
+                || (word.ends_with("iciti") && measure_with_limit(&word, word.len() - 5) > 0)
+            {
                 word.truncate(word.len() - 5);
                 word.push_str("ic");
             }
@@ -321,9 +313,9 @@ fn stem4(mut word: String) -> String {
             }
         }
         Some('c') => {
-            if word.ends_with("ance") && measure_with_limit(&word, word.len() - 4) > 1 {
-                word.truncate(word.len() - 4);
-            } else if word.ends_with("ence") && measure_with_limit(&word, word.len() - 4) > 1 {
+            if (word.ends_with("ance") && measure_with_limit(&word, word.len() - 4) > 1)
+                || (word.ends_with("ence") && measure_with_limit(&word, word.len() - 4) > 1)
+            {
                 word.truncate(word.len() - 4);
             }
         }
@@ -338,9 +330,9 @@ fn stem4(mut word: String) -> String {
             }
         }
         Some('l') => {
-            if word.ends_with("able") && measure_with_limit(&word, word.len() - 4) > 1 {
-                word.truncate(word.len() - 4);
-            } else if word.ends_with("ible") && measure_with_limit(&word, word.len() - 4) > 1 {
+            if (word.ends_with("able") && measure_with_limit(&word, word.len() - 4) > 1)
+                || (word.ends_with("ible") && measure_with_limit(&word, word.len() - 4) > 1)
+            {
                 word.truncate(word.len() - 4);
             }
         }
@@ -370,9 +362,9 @@ fn stem4(mut word: String) -> String {
             }
         }
         Some('t') => {
-            if word.ends_with("ate") && measure_with_limit(&word, word.len() - 3) > 1 {
-                word.truncate(word.len() - 3);
-            } else if word.ends_with("iti") && measure_with_limit(&word, word.len() - 3) > 1 {
+            if (word.ends_with("ate") && measure_with_limit(&word, word.len() - 3) > 1)
+                || (word.ends_with("iti") && measure_with_limit(&word, word.len() - 3) > 1)
+            {
                 word.truncate(word.len() - 3);
             }
         }
@@ -417,17 +409,20 @@ fn stem5a(mut word: String) -> String {
     let three = my_chars.next();
     let four = my_chars.next();
     if y == 'e' {
-        if measure(&word) > 1 {
-            return word;
-        } else if measure(&word) == 1 {
-            if !is_consonant(two, one) || is_consonant(three, two) || !is_consonant(four, three) {
-                return word;
-            } else {
-                match four {
-                    Some('x') | Some('y') | Some('w') => return word,
-                    _ => word.push(y),
+        match measure(&word) {
+            0 => {}
+            1 => {
+                if !is_consonant(two, one) || is_consonant(three, two) || !is_consonant(four, three)
+                {
+                    return word;
+                } else {
+                    match four {
+                        Some('x') | Some('y') | Some('w') => return word,
+                        _ => word.push(y),
+                    }
                 }
             }
+            _ => return word,
         }
     } else {
         word.push(y);
@@ -436,13 +431,12 @@ fn stem5a(mut word: String) -> String {
 }
 
 fn stem5b(mut word: String) -> String {
-    if word.ends_with("l") {
-        let my_chars = word.chars();
-        let mut foo = my_chars.skip(word.len() - 3);
+    if word.ends_with('l') {
+        let mut my_chars = word.chars().skip(word.len() - 3);
 
-        let one = foo.next();
-        let two = foo.next();
-        let three = foo.next();
+        let one = my_chars.next();
+        let two = my_chars.next();
+        let three = my_chars.next();
         let y = word.pop().unwrap();
         if !(measure(&word) > 1 && is_consonant(two, one) && is_consonant(three, two)) {
             word.push(y);
