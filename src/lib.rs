@@ -1,5 +1,16 @@
+use std::fmt;
 use std::iter::Skip;
 use std::str::Chars;
+
+type Result<T, StemError> = std::result::Result<T, StemError>;
+#[derive(Debug, Clone)]
+pub struct StemError;
+
+impl fmt::Display for StemError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Invalid Input")
+    }
+}
 // A \consonant\ in a word is a letter other than A, E, I, O or U, and other
 // than Y preceded by a consonant. (The fact that the term `consonant' is
 // defined to some extent in terms of itself does not make it ambiguous.) So in
@@ -79,7 +90,12 @@ fn get_char_at_position(word: &str, position: usize) -> Option<char> {
     word.chars().nth(position - 1)
 }
 
-pub fn stem(word: String) -> String {
+pub fn stem(word: String) -> Result<String, StemError> {
+    for my_char in word.chars() {
+        if !my_char.is_ascii() {
+            return Err(StemError);
+        }
+    }
     if word.len() > 2 {
         let mut my_word = word.to_lowercase().trim().to_string();
         my_word = stem1a(my_word);
@@ -90,9 +106,9 @@ pub fn stem(word: String) -> String {
         my_word = stem4(my_word);
         my_word = stem5a(my_word);
         my_word = stem5b(my_word);
-        my_word
+        Ok(my_word)
     } else {
-        word
+        Ok(word)
     }
 }
 
@@ -507,20 +523,21 @@ mod tests {
     }
 
     #[test]
-    fn test_stem() {
-        assert_eq!(stem(String::from("is")), String::from("is"));
-        assert_eq!(stem(String::from("caresses")), String::from("caress"));
-        assert_eq!(stem(String::from("ponies")), String::from("poni"));
-        assert_eq!(stem(String::from("caress")), String::from("caress"));
-        assert_eq!(stem(String::from("cats")), String::from("cat"));
-        assert_eq!(stem(String::from("generalization")), String::from("gener"));
-        assert_eq!(stem(String::from("oscillators")), String::from("oscil"));
-        assert_eq!(stem(String::from("a")), String::from("a"));
-        assert_eq!(stem(String::from("ababab")), String::from("ababab"));
-        assert_eq!(stem(String::from("airs")), String::from("air"));
-        assert_eq!(stem(String::from("ars")), String::from("ar"));
-        assert_eq!(stem(String::from("trouble")), String::from("troubl"));
-        assert_eq!(stem(String::from("dependent")), String::from("depend"));
+    fn test_stem() -> Result<(), StemError> {
+        assert_eq!(stem(String::from("is"))?, String::from("is"));
+        assert_eq!(stem(String::from("caresses"))?, String::from("caress"));
+        assert_eq!(stem(String::from("ponies"))?, String::from("poni"));
+        assert_eq!(stem(String::from("caress"))?, String::from("caress"));
+        assert_eq!(stem(String::from("cats"))?, String::from("cat"));
+        assert_eq!(stem(String::from("generalization"))?, String::from("gener"));
+        assert_eq!(stem(String::from("oscillators"))?, String::from("oscil"));
+        assert_eq!(stem(String::from("a"))?, String::from("a"));
+        assert_eq!(stem(String::from("ababab"))?, String::from("ababab"));
+        assert_eq!(stem(String::from("airs"))?, String::from("air"));
+        assert_eq!(stem(String::from("ars"))?, String::from("ar"));
+        assert_eq!(stem(String::from("trouble"))?, String::from("troubl"));
+        assert_eq!(stem(String::from("dependent"))?, String::from("depend"));
+        Ok(())
     }
 
     #[test]
